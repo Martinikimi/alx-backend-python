@@ -36,10 +36,10 @@ def stream_users_in_batches(batch_size):
 
 def batch_processing(batch_size):
     """
-    Processes each batch to filter users over the age of 25.
-    Yields or prints the processed users one by one.
+    Generator that processes each batch and yields users over the age of 25.
     """
     for batch in stream_users_in_batches(batch_size):
-        for user in batch:  # Loop #2
+        for user in batch:
             if user['age'] > 25:
-                print(user)
+                yield user
+
