@@ -58,8 +58,12 @@ class TestMemoize(unittest.TestCase):
         class TestClass:
             """Test class for memoize testing."""
 
+            def __init__(self):
+                self.call_count = 0
+
             def a_method(self):
                 """Method to be memoized."""
+                self.call_count += 1
                 return 42
 
             @memoize
@@ -68,11 +72,15 @@ class TestMemoize(unittest.TestCase):
                 return self.a_method()
 
         test_obj = TestClass()
-        with patch.object(TestClass, "a_method",
-                          return_value=42) as mock_method:
-            result1 = test_obj.a_property()
-            result2 = test_obj.a_property()
+        
+        # First call should call a_method
+        result1 = test_obj.a_property()
+        self.assertEqual(result1, 42)
+        self.assertEqual(test_obj.call_count, 1)
+        
+        # Second call should use cached result
+        result2 = test_obj.a_property()
+        self.assertEqual(result2, 42)
+        self.assertEqual(test_obj.call_count, 1)  # Should still be 1
 
-            self.assertEqual(result1, 42)
-            self.assertEqual(result2, 42)
-            mock_method.assert_called_once()
+
