@@ -1,5 +1,3 @@
-
-
 #!/usr/bin/env python3
 """
 Test suite for utils.py functions: access_nested_map, get_json, and memoize.
@@ -11,6 +9,8 @@ from utils import access_nested_map, get_json, memoize
 
 
 class TestAccessNestedMap(unittest.TestCase):
+    """Tests for utils.access_nested_map function."""
+
     @parameterized.expand([
         ({"a": 1}, ("a",), 1),
         ({"a": {"b": 2}}, ("a",), {"b": 2}),
@@ -30,6 +30,8 @@ class TestAccessNestedMap(unittest.TestCase):
 
 
 class TestGetJson(unittest.TestCase):
+    """Tests for utils.get_json function with mocked HTTP calls."""
+
     @parameterized.expand([
         ("http://example.com", {"payload": True}),
         ("http://holberton.io", {"payload": False})
@@ -46,6 +48,8 @@ class TestGetJson(unittest.TestCase):
 
 
 class TestMemoize(unittest.TestCase):
+    """Tests for utils.memoize decorator behavior."""
+
     def test_memoize(self):
         class TestClass:
             def a_method(self):
@@ -63,3 +67,4 @@ class TestMemoize(unittest.TestCase):
             self.assertEqual(result1, 42)
             self.assertEqual(result2, 42)
             mock_method.assert_called_once()
+
