@@ -1,3 +1,4 @@
+# messaging_app/settings.py
 """
 Django settings for messaging_app project.
 """
@@ -101,7 +102,11 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 # Django REST Framework settings
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.AllowAny',
+        'rest_framework.permissions.IsAuthenticated',  # Required: IsAuthenticated permission
+    ],
+    'DEFAULT_AUTHENTICATION_CLASSES': [  # Required: Authentication classes
+        'rest_framework.authentication.SessionAuthentication',  # Required: SessionAuthentication
+        'rest_framework.authentication.BasicAuthentication',
     ],
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 10,
