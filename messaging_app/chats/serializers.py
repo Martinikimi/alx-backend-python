@@ -1,5 +1,4 @@
 from rest_framework import serializers
-from rest_framework.exceptions import ValidationError
 from .models import User, Conversation, Message
 
 
@@ -40,14 +39,14 @@ class UserSerializer(serializers.ModelSerializer):
     def validate_email(self, value):
         """Validate email format and uniqueness."""
         if User.objects.filter(email=value).exists():
-            raise ValidationError("A user with this email already exists.")
+            raise serializers.ValidationError("A user with this email already exists.")
         return value
     
     def validate(self, data):
         """Validate password confirmation."""
         if 'password' in data and 'confirm_password' in data:
             if data['password'] != data['confirm_password']:
-                raise ValidationError({"confirm_password": "Passwords do not match."})
+                raise serializers.ValidationError({"confirm_password": "Passwords do not match."})
         return data
     
     def create(self, validated_data):
@@ -105,7 +104,7 @@ class MessageSerializer(serializers.ModelSerializer):
     def validate_message_body(self, value):
         """Validate message body is not empty after stripping."""
         if not value.strip():
-            raise ValidationError("Message body cannot be empty.")
+            raise serializers.ValidationError("Message body cannot be empty.")
         return value.strip()
 
 
@@ -135,7 +134,7 @@ class ConversationSerializer(serializers.ModelSerializer):
     def validate_participant_ids(self, value):
         """Validate that there are at least 2 participants."""
         if len(value) < 2:
-            raise ValidationError("A conversation must have at least 2 participants.")
+            raise serializers.ValidationError("A conversation must have at least 2 participants.")
         return value
     
     def create(self, validated_data):
@@ -235,5 +234,5 @@ class MessageCreateSerializer(serializers.ModelSerializer):
     def validate_message_body(self, value):
         """Validate message body is not empty after stripping."""
         if not value.strip():
-            raise ValidationError("Message body cannot be empty.")
+            raise serializers.ValidationError("Message body cannot be empty.")
         return value.strip()
