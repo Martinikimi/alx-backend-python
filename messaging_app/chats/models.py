@@ -1,3 +1,4 @@
+
 import uuid
 from django.db import models
 from django.contrib.auth.models import AbstractUser
@@ -20,6 +21,9 @@ class User(AbstractUser):
     role = models.CharField(max_length=10, choices=Role.choices, null=False)
     created_at = models.DateTimeField(auto_now_add=True)
     
+    # Password field is inherited from AbstractUser as 'password'
+    # The AbstractUser already has a password field that stores hashed passwords
+    
     # Override username field to use email instead
     username = None
     USERNAME_FIELD = 'email'
@@ -37,6 +41,14 @@ class User(AbstractUser):
     
     def __str__(self):
         return f"{self.first_name} {self.last_name} ({self.email})"
+    
+    def set_password(self, raw_password):
+        """Override set_password to ensure password is hashed properly."""
+        super().set_password(raw_password)
+    
+    def check_password(self, raw_password):
+        """Check if the provided password matches the hashed password."""
+        return super().check_password(raw_password)
 
 
 class Conversation(models.Model):
