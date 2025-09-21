@@ -1,6 +1,3 @@
-
-
-
 #!/usr/bin/env python3
 """
 Test suite for utils.py functions: access_nested_map, get_json, and memoize.
@@ -41,7 +38,7 @@ class TestGetJson(unittest.TestCase):
         ("http://example.com", {"payload": True}),
         ("http://holberton.io", {"payload": False})
     ])
-    @patch('utils.requests.get')
+    @patch("utils.requests.get")
     def test_get_json(self, test_url, test_payload, mock_get):
         """Test get_json returns correct data from mocked response."""
         mock_response = Mock()
@@ -59,18 +56,29 @@ class TestMemoize(unittest.TestCase):
     def test_memoize(self):
         """Test that memoize decorator caches method results."""
         class TestClass:
+            """Test class for memoize testing."""
+
+            def __init__(self):
+                self.call_count = 0
+
             def a_method(self):
+                """Method to be memoized."""
+                self.call_count += 1
                 return 42
 
             @memoize
             def a_property(self):
+                """Memoized property."""
                 return self.a_method()
 
-        with patch.object(TestClass, 'a_method') as mock_method:
-            mock_method.return_value = 42
-            test_instance = TestClass()
-            result1 = test_instance.a_property()
-            result2 = test_instance.a_property()
-            self.assertEqual(result1, 42)
-            self.assertEqual(result2, 42)
-            mock_method.assert_called_once()
+        test_obj = TestClass()
+        
+        # First call should call a_method
+        result1 = test_obj.a_property()
+        self.assertEqual(result1, 42)
+        self.assertEqual(test_obj.call_count, 1)
+        
+        # Second call should use cached result
+        result2 = test_obj.a_property()
+        self.assertEqual(result2, 42)
+        self.assertEqual(test_obj.call_count, 1)  # Should still be 1
