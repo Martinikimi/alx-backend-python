@@ -24,11 +24,10 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+     "chats.middleware.RequestLoggingMiddleware",
+    "chats.middleware.RestrictAccessByTimeMiddleware",
 
-    # ✅ your custom middleware
-    "chats.middleware.RequestLoggingMiddleware",
-]
-
+] 
 ROOT_URLCONF = "Django-Middleware-0x03.urls"
 
 WSGI_APPLICATION = "Django-Middleware-0x03.wsgi.application"
