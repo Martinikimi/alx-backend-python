@@ -242,6 +242,27 @@ class MessageViewSet(viewsets.ModelViewSet):
     serializer_class = MessageSerializer
     permission_classes = [permissions.IsAuthenticated, IsParticipantOfConversation]
 
+from rest_framework import viewsets
+from django_filters.rest_framework import DjangoFilterBackend
+from .models import Message
+from .serializers import MessageSerializer
+from .permissions import IsParticipantOfConversation
+from .filters import MessageFilter
+from .pagination import MessagePagination
+
+
+class MessageViewSet(viewsets.ModelViewSet):
+    serializer_class = MessageSerializer
+    permission_classes = [IsParticipantOfConversation]
+    pagination_class = MessagePagination
+    filter_backends = [DjangoFilterBackend]
+    filterset_class = MessageFilter
+
+    def get_queryset(self):
+        return Message.objects.filter(conversation__participants=self.request.user)
+
+
+
     def get_queryset(self):
         # Limit messages to only conversations the user participates in
         return Message.objects.filter(conversation__participants=self.request.user)
