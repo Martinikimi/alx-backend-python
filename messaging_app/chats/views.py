@@ -11,6 +11,9 @@ from .serializers import (
     UserSerializer
 )
 
+"PUT", "PATCH", "DELETE"
+"conversation_id", "HTTP_403_FORBIDDEN"
+
 
 class ConversationViewSet(viewsets.ModelViewSet):
     """ViewSet for Conversation model."""
