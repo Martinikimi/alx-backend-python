@@ -79,5 +79,28 @@ class OffensiveLanguageMiddleware:
             ip = request.META.get("REMOTE_ADDR")
         return ip
 
+from django.http import HttpResponseForbidden
+
+class RolePermissionMiddleware:
+    def __init__(self, get_response):
+        self.get_response = get_response
+
+    def __call__(self, request):
+        """
+        Middleware that only allows admins or moderators
+        to perform restricted actions (like managing chats).
+        """
+        user = request.user
+
+        # Check if user is authenticated
+        if user.is_authenticated:
+            # Example: assuming User model has a "role" field
+            role = getattr(user, "role", None)
+
+            # Restrict non-admin/non-moderator users
+            if role not in ["admin", "moderator"]:
+                return HttpResponseForbidden("Access denied: insufficient permissions.")
+
+        return self.get_response(request)
 
 
