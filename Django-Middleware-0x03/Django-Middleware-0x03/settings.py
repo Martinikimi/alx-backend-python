@@ -1,4 +1,3 @@
-import os
 from pathlib import Path
 
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -14,7 +13,7 @@ INSTALLED_APPS = [
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
-    "chats",   # your app
+    "chats",  # your app
 ]
 
 MIDDLEWARE = [
@@ -26,27 +25,11 @@ MIDDLEWARE = [
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 
-    # ✅ Custom middleware
+    # ✅ your custom middleware
     "chats.middleware.RequestLoggingMiddleware",
 ]
 
 ROOT_URLCONF = "Django-Middleware-0x03.urls"
-
-TEMPLATES = [
-    {
-        "BACKEND": "django.template.backends.django.DjangoTemplates",
-        "DIRS": [],
-        "APP_DIRS": True,
-        "OPTIONS": {
-            "context_processors": [
-                "django.template.context_processors.debug",
-                "django.template.context_processors.request",
-                "django.contrib.auth.context_processors.auth",
-                "django.contrib.messages.context_processors.messages",
-            ],
-        },
-    },
-]
 
 WSGI_APPLICATION = "Django-Middleware-0x03.wsgi.application"
 
@@ -58,3 +41,4 @@ DATABASES = {
 }
 
 STATIC_URL = "static/"
+
