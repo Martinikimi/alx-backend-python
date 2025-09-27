@@ -30,4 +30,7 @@ conversations_router.register(r'messages', MessageViewSet, basename='conversatio
 urlpatterns = [
     path('', include(router.urls)),
     path('', include(conversations_router.urls)),
+    path('messages/', views.MessageListView.as_view(), name='messages'),
+    path('conversations/', views.ConversationListView.as_view(), name='conversations'),
 ]
+
