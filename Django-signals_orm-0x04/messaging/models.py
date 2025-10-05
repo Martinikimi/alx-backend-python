@@ -1,26 +1,33 @@
-from django.db import models
+from django.db.models.signals import post_save, pre_save, post_delete
+from django.dispatch import receiver
 from django.contrib.auth.models import User
 from django.utils import timezone
+from .models import Message, Notification, MessageHistory
 
-class Message(models.Model):
-    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
-    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
-    content = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True)
-    read = models.BooleanField(default=False)
-    edited = models.BooleanField(default=False)
-    parent_message = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+@receiver(post_save, sender=Message)
+def create_message_notification(sender, instance, created, **kwargs):
+    if created:
+        Notification.objects.create(
+            user=instance.receiver,
+            message=instance
+        )
 
-class MessageHistory(models.Model):
-    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='history')
-    old_content = models.TextField()
-    edit_timestamp = models.DateTimeField(auto_now_add=True)
+@receiver(pre_save, sender=Message)
+def log_message_edit(sender, instance, **kwargs):
+    if instance.pk:
+        old_message = Message.objects.get(pk=instance.pk)
+        if old_message.content != instance.content:
+            MessageHistory.objects.create(
+                message=instance,
+                old_content=old_message.content,
+                edited_by=instance.sender
+            )
+            instance.edited = True
+            instance.edited_at = timezone.now()
+            instance.edited_by = instance.sender
 
-class Notification(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
-    message = models.ForeignKey(Message, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField(auto_now_add=True)
-    is_read = models.BooleanField(default=False)
-
-    def __str__(self):
-        return f"Notification for {self.user.username}"
+@receiver(post_delete, sender=User)
+def delete_user_data(sender, instance, **kwargs):
+    Message.objects.filter(sender=instance).delete()
+    Message.objects.filter(receiver=instance).delete()
+    Notification.objects.filter(user=instance).delete()
