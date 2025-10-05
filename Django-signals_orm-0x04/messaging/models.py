@@ -1,30 +1,33 @@
-from django.shortcuts import render, get_object_or_404
-from django.contrib.auth.decorators import login_required
-from django.views.decorators.cache import cache_page
-from django.http import JsonResponse
-from .models import Message, Notification
+from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
+from .managers import UnreadMessagesManager
 
-@login_required
-@cache_page(60)
-def conversation_view(request, user_id):
-    other_user = get_object_or_404(User, id=user_id)
-    messages = Message.objects.filter(
-        sender=request.user, receiver=other_user
-    ) | Message.objects.filter(
-        sender=other_user, receiver=request.user
-    )
-    messages = messages.select_related('sender', 'receiver').prefetch_related('replies')
-    return render(request, 'conversation.html', {'messages': messages, 'other_user': other_user})
+class Message(models.Model):
+    sender = models.ForeignKey(User, on_delete=models.CASCADE, related_name='sent_messages')
+    receiver = models.ForeignKey(User, on_delete=models.CASCADE, related_name='received_messages')
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    read = models.BooleanField(default=False)
+    edited = models.BooleanField(default=False)
+    edited_at = models.DateTimeField(null=True, blank=True)
+    edited_by = models.ForeignKey(User, on_delete=models.SET_NULL, null=True, blank=True, related_name='edited_messages')
+    parent_message = models.ForeignKey('self', on_delete=models.CASCADE, null=True, blank=True, related_name='replies')
+    
+    objects = models.Manager()
+    unread = UnreadMessagesManager()
 
-@login_required
-def delete_user_view(request):
-    if request.method == 'POST':
-        request.user.delete()
-        return JsonResponse({'status': 'success'})
-    return render(request, 'delete_account.html')
+class MessageHistory(models.Model):
+    message = models.ForeignKey(Message, on_delete=models.CASCADE, related_name='history')
+    old_content = models.TextField()
+    edit_timestamp = models.DateTimeField(auto_now_add=True)
+    edited_by = models.ForeignKey(User, on_delete=models.CASCADE)
 
-@login_required
-def unread_messages_view(request):
-    unread_messages = Message.unread.unread_for_user(request.user).only('id', 'content', 'sender__username', 'timestamp')
-    return render(request, 'inbox.html', {'unread_messages': unread_messages})
+class Notification(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    message = models.ForeignKey(Message, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    is_read = models.BooleanField(default=False)
+
+    def __str__(self):
+        return f"Notification for {self.user.username}"
