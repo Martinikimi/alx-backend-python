@@ -17,13 +17,14 @@ spec:
       containers:
       - name: django-app
         image: django-messaging-app:latest
+        imagePullPolicy: Never  # ← ADD THIS LINE
         ports:
         - containerPort: 8000
         env:
         - name: DEBUG
           value: "True"
         - name: DJANGO_SETTINGS_MODULE
-          value: "messaging_app.settings" 
+          value: "messaging_app.settings"
 ---
 apiVersion: v1
 kind: Service

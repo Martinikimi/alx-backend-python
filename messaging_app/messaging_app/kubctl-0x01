@@ -1,0 +1,28 @@
+#!/bin/bash
+
+# kubctl-0x01 - Kubernetes Scaling Script
+
+echo "=== Starting Kubernetes Scaling Operation ==="
+
+# Scale the deployment to 3 replicas
+echo "1. Scaling deployment to 3 replicas..."
+kubectl scale deployment/django-messaging-app --replicas=3
+
+# Wait for pods to be ready
+echo "2. Waiting for pods to be ready..."
+sleep 20
+
+# Verify multiple pods are running
+echo "3. Verifying pods are running:"
+kubectl get pods -l app=django-messaging-app
+
+# Monitor resource usage
+echo "4. Monitoring resource usage:"
+kubectl top pods -l app=django-messaging-app 2>/dev/null || echo "Metrics server not available"
+
+# Perform load testing
+echo "5. Performing load testing..."
+echo "Starting load test with wrk..."
+kubectl run load-test --image=williamyeh/wrk -it --rm --restart=Never -- -t2 -c10 -d10s http://django-messaging-service:8000
+
+echo "=== Scaling operation completed ==="
