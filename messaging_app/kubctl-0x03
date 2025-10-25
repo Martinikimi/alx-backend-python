@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# kubctl-0x03 - Rolling Update Script
+
+echo "=== Starting Rolling Update ==="
+
+# Build the new version 2.0 Docker image
+echo "1. Building new Docker image version 2.0..."
+eval $(minikube docker-env)
+docker build -t django-messaging-app:2.0 .
+
+# Apply the updated deployment
+echo "2. Applying updated deployment with version 2.0..."
+kubectl apply -f blue_deployment.yaml
+
+# Start continuous curl testing in background
+echo "3. Starting continuous availability test..."
+MINIKUBE_IP=$(minikube ip)
+SERVICE_PORT=$(kubectl get service django-messaging-service -o jsonpath='{.spec.ports[0].port}')
+TEST_URL="http://$MINIKUBE_IP:$SERVICE_PORT/"
+
+# Function to test app availability
+test_app() {
+    while true; do
+        response=$(curl -s -o /dev/null -w "%{http_code}" --connect-timeout 5 $TEST_URL || echo "FAILED")
+        timestamp=$(date '+%H:%M:%S')
+        if [ "$response" == "200" ] || [ "$response" == "301" ] || [ "$response" == "302" ]; then
+            echo "$timestamp - OK: App responding (HTTP $response)"
+        else
+            echo "$timestamp - ERROR: App not responding ($response)"
+        fi
+        sleep 2
+    done
+}
+
+# Start testing in background
+test_app &
+TEST_PID=$!
+
+# Monitor the rolling update
+echo "4. Monitoring rolling update progress..."
+kubectl rollout status deployment/django-messaging-app-blue --timeout=300s
+
+if [ $? -eq 0 ]; then
+    echo "5. Rolling update completed successfully!"
+else
+    echo "5. Rolling update failed or timed out!"
+    kill $TEST_PID 2>/dev/null
+    exit 1
+fi
+
+# Stop the continuous test
+kill $TEST_PID 2>/dev/null
+
+# Verify the rolling update is complete
+echo "6. Verifying rolling update is complete..."
+echo "Current pods:"
+kubectl get pods -l version=blue
+
+echo "7. Deployment details:"
+kubectl describe deployment django-messaging-app-blue
+
+echo "=== Rolling Update Completed Successfully ==="
