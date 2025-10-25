@@ -1,0 +1,36 @@
+#!/bin/bash
+
+# kurbeScript - Kubernetes setup script
+# Windows-compatible version
+
+echo "Starting Kubernetes cluster setup..."
+
+# Check if minikube is installed
+minikube version >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo "Minikube not found. Please install minikube from: https://minikube.sigs.k8s.io/docs/start/"
+    echo "On Windows, you can install using Chocolatey: choco install minikube"
+    exit 1
+fi
+
+# Check if kubectl is installed
+kubectl version --client >/dev/null 2>&1
+if [ $? -ne 0 ]; then
+    echo "kubectl not found. Please install kubectl from: https://kubernetes.io/docs/tasks/tools/"
+    echo "On Windows, you can install using Chocolatey: choco install kubernetes-cli"
+    exit 1
+fi
+
+# Start Kubernetes cluster
+echo "Starting Kubernetes cluster..."
+minikube start
+
+# Verify cluster is running
+echo "Verifying cluster status..."
+kubectl cluster-info
+
+# Retrieve available pods
+echo "Retrieving available pods..."
+kubectl get pods --all-namespaces
+
+echo "Kubernetes setup completed successfully!"
