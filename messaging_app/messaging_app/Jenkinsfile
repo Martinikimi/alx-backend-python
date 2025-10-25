@@ -17,41 +17,39 @@ pipeline {
         
         stage('Install Dependencies') {
             steps {
-                dir('messaging_app') {
-                    sh 'pip install -r requirements.txt'
-                }
+                sh 'cd messaging_app && pip3 install -r messaging_app/requirements.txt'
             }
         }
         
-        stage('Run Tests') {
+        stage('Run Tests with Pytest') {
             steps {
-                dir('messaging_app') {
-                    sh 'python manage.py test --noinput'
-                    sh 'pytest --junitxml=test-results.xml'
-                }
+                sh 'cd messaging_app && python -m pytest --junitxml=test-results.xml'
             }
             post {
                 always {
                     junit 'messaging_app/test-results.xml'
+                    publishHTML([
+                        allowMissing: false,
+                        alwaysLinkToLastBuild: false,
+                        keepAll: true,
+                        reportDir: 'messaging_app',
+                        reportFiles: 'test-results.xml',
+                        reportName: 'Pytest Report'
+                    ])
                 }
             }
         }
         
         stage('Code Quality Check') {
             steps {
-                dir('messaging_app') {
-                    sh 'flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics'
-                    sh 'flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics'
-                }
+                sh 'cd messaging_app && flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics'
             }
         }
         
         stage('Build Docker Image') {
             steps {
-                dir('messaging_app') {
-                    script {
-                        dockerImage = docker.build("your-dockerhub-username/messaging-app:${env.BUILD_ID}")
-                    }
+                script {
+                    dockerImage = docker.build("your-dockerhub-username/messaging-app:${env.BUILD_ID}")
                 }
             }
         }
